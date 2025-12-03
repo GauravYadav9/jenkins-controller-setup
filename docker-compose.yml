@@ -1,0 +1,48 @@
+services:
+  jenkins:
+    image: jenkins-controller:latest
+    container_name: jenkins
+    build: .
+    restart: always
+    # Required for Docker socket access (/var/run/docker.sock) — DinD execution needs root
+    user: root
+    ports:
+      - "8087:8080"
+      - "50011:50000"
+    
+    environment:
+      # Force plugin sync — ensures plugins.txt versions overwrite stale volume plugins
+      PLUGINS_FORCE_UPGRADE: "true"
+      # CasC config location
+      CASC_JENKINS_CONFIG: /casc
+      JENKINS_JAVA_OPTS: >-
+        -Xms1g
+        -Xmx3g
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=200
+        -Dhudson.model.DirectoryBrowserSupport.CSP=
+        -Djenkins.install.runSetupWizard=false
+        -Djava.awt.headless=true
+      JENKINS_URL: "${JENKINS_URL}"
+      ADMIN_USER: "${ADMIN_USER}"
+      ADMIN_PASS: "${ADMIN_PASS}"
+      LIB_GIT_URL: "${LIB_GIT_URL}"
+      LIB_DEFAULT_BRANCH: "${LIB_DEFAULT_BRANCH}"
+      SMTP_HOST: "${SMTP_HOST}"
+      SMTP_PORT: "${SMTP_PORT}"
+      SMTP_USE_SSL: "${SMTP_USE_SSL}"
+      SMTP_USE_STARTTLS: "${SMTP_USE_STARTTLS}"
+      SMTP_REPLY_TO: "${SMTP_REPLY_TO}"
+      SMTP_USERNAME: "${SMTP_USERNAME}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD}"
+      QASE_API_TOKEN: "${QASE_API_TOKEN}"
+      RECIPIENT_EMAILS: "${RECIPIENT_EMAILS}"
+      DEV_RECIPIENT_EMAILS: "${DEV_RECIPIENT_EMAILS}"
+
+    volumes:
+      - jenkins_home_v3:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./casc.yaml:/casc/casc.yaml:ro
+
+volumes:
+  jenkins_home_v3: {}
