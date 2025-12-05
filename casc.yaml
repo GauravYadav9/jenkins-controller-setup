@@ -1,0 +1,87 @@
+jenkins:
+  systemMessage: "Jenkins configured via JCasC (casc.yaml)."
+  numExecutors: 2
+  mode: NORMAL
+  remotingSecurity:
+    enabled: true
+
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${ADMIN_USER:-admin}"
+          password: "${ADMIN_PASS:-admin123}"
+
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+unclassified:
+  location:
+    url: "${JENKINS_URL:-http://localhost:8086/}"
+    adminAddress: "jenkins@local"
+
+  globalLibraries:
+    libraries:
+      - name: "jenkins-pipeline-library"
+        defaultVersion: "${LIB_DEFAULT_BRANCH:-main}"
+        implicit: false
+        retriever:
+          modernSCM:
+            scm:
+              gitSource:
+                remote: "${LIB_GIT_URL}"
+
+  # This is the built-in Mailer (good to have)
+  mailer:
+    smtpHost: "${SMTP_HOST}"
+    smtpPort: "${SMTP_PORT:-587}"
+    useSsl: "${SMTP_USE_SSL:-false}"
+    useTls: "${SMTP_USE_STARTTLS:-true}"
+    charset: "UTF-8"
+    replyToAddress: "${SMTP_REPLY_TO:-no-reply@local}"
+    authentication:
+      username: "${SMTP_USERNAME}"
+      password: "${SMTP_PASSWORD}"
+
+  email-ext:
+    debugMode: false
+    defaultContentType: "text/html"
+    defaultSubject: "$PROJECT_NAME #$BUILD_NUMBER: $BUILD_STATUS"
+    defaultRecipients: "" 
+    charset: "UTF-8"
+    defaultReplyTo: "${SMTP_REPLY_TO:-no-reply@local}"
+    
+    mailAccount:
+      smtpHost: "${SMTP_HOST}"
+      smtpPort: "${SMTP_PORT:-587}"
+      useSsl: "${SMTP_USE_SSL:-false}"
+      useTls: "${SMTP_USE_STARTTLS:-true}"
+      smtpUsername: "${SMTP_USERNAME}"
+      smtpPassword: "${SMTP_PASSWORD}"
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - string:
+              scope: GLOBAL
+              id: "qase-api-token"
+              description: "Qase API token"
+              secret: "${QASE_API_TOKEN}"
+          - string:
+              scope: GLOBAL
+              id: "recipient-email-list"
+              description: "Distribution list for email notifications"
+              secret: "${RECIPIENT_EMAILS}"
+          - string:
+              scope: GLOBAL
+              id: "dev-recipient-email-list"
+              description: "DEV Distribution list (feature branches)"
+              secret: "${DEV_RECIPIENT_EMAILS}"
+
+tool:
+  git:
+    installations:
+      - name: "Default"
+        home: "git"
