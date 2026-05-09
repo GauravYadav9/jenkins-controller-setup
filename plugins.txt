@@ -1,19 +1,19 @@
 # Core Pipeline & SCM
 workflow-aggregator:608.v67378e9d3db_1
 git:5.10.1
-github-branch-source:1871.v50ffb_786515e   # Keep if your repo is on GitHub; swap if using a different SCM source
+github-branch-source:1967.1969.v205fd594c821
 pipeline-utility-steps:2.20.0             # Added explicitly for readJSON
 # Docker Pipeline
 docker-workflow:632.vb_4b_d9336b_5ef
 
 # Credentials
 credentials:1496.vf6821f162d4e
-credentials-binding:717.v951d49b_5f3a_a_
-ssh-credentials:361.vb_f6760818e8c        # keep if you use SSH checkouts
+credentials-binding:720.v3f6decef43ea_
+ssh-credentials:361.vb_f6760818e8c        # For SSH checkouts
 
 # Reporting & Notifications
 junit:1363.v2ea_b_461a_1480
-htmlpublisher:427
+htmlpublisher:427.1
 email-ext:1933.v45cec755423f
 mailer:525.v2458b_d8a_1a_71               # required core email plumbing
 
