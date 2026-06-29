@@ -1,5 +1,5 @@
 # Start from the official, unmodified Jenkins image
-FROM jenkins/jenkins:lts-jdk21
+FROM jenkins/jenkins:2.555.1-jdk21
 
 # Switch to root to perform all setup tasks
 USER root

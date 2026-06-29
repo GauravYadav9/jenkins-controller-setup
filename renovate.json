@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base"
+  ],
+  "jenkins": {
+    "fileMatch": ["(^|/)plugins\\.txt$"]
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["jenkins"],
+      "groupName": "Jenkins Plugins",
+      "schedule": ["before 5am on monday"]
+    },
+    {
+      "matchManagers": ["dockerfile"],
+      "groupName": "Jenkins Base Image",
+      "schedule": ["before 5am on monday"]
+    }
+  ]
+}
