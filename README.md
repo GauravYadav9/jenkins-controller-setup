@@ -2,11 +2,13 @@
 
 Infrastructure-as-Code (IaC) setup for a Jenkins controller using Docker, Docker Compose, and Jenkins Configuration as Code (JCasC). This produces a fully configured, reproducible Jenkins instance from a single `docker compose up` command.
 
+The Jenkins base image is pinned to a specific LTS version for deterministic builds, and all plugin versions are locked in `plugins.txt`. Dependency updates are automated via [Renovate Bot](https://github.com/apps/renovate).
+
 This setup is intended for single-node Docker-based Jenkins environments and is not designed for distributed or Kubernetes-based execution.
 
 ## What Gets Pre-Configured
 
-- All plugins pre-installed from a locked version list
+- All plugins pre-installed from a locked, pinned version list
 - Admin user with configurable credentials
 - Shared pipeline library ([jenkins-pipeline-library](https://github.com/GauravYadav9/jenkins-pipeline-library)) auto-registered
 - Email notifications (Mailer + Email-Ext) with SMTP configuration
@@ -45,7 +47,7 @@ This builds the `jenkins-controller:latest` image and starts the container.
 
 ### 4. Access Jenkins
 
-- **URL**: `http://<YOUR_IP>:8086/`
+- **URL**: `http://<YOUR_IP>:8087/`
 - **Username**: The `ADMIN_USER` from your `.env` file
 - **Password**: The `ADMIN_PASS` from your `.env` file
 
@@ -63,10 +65,11 @@ docker compose down -v
 
 | File | Purpose |
 |---|---|
-| `docker-compose.yml` | Service orchestrator — defines the `jenkins` service, maps ports (8086:8080), mounts volumes, and injects all `.env` variables |
-| `Dockerfile` | Builds the `jenkins-controller:latest` image — installs Docker CLI, pre-installs plugins from `plugins.txt`, copies `casc.yaml` into the image |
+| `docker-compose.yml` | Service orchestrator — defines the `jenkins` service, maps ports (8087:8080), mounts volumes, and injects all `.env` variables |
+| `Dockerfile` | Builds the `jenkins-controller:latest` image from a pinned Jenkins LTS version — installs Docker CLI, pre-installs plugins from `plugins.txt`, copies `casc.yaml` into the image |
 | `casc.yaml` | JCasC configuration — declaratively defines security, admin user, Git tool, credentials, shared library reference, and email-ext settings |
 | `plugins.txt` | Locked plugin versions for reproducible builds — includes Pipeline, Docker, Git, JUnit, HTML Publisher, Email-Ext, JCasC, Blue Ocean |
+| `renovate.json` | Renovate Bot configuration — automates dependency update PRs for both `plugins.txt` and Dockerfile base image on a weekly schedule |
 | `.env.example` | Template showing all required environment variables — copy to `.env` and fill in values |
 | `.gitignore` | Ensures `.env` (containing secrets) is never committed to Git |
 
@@ -74,9 +77,9 @@ docker compose down -v
 
 The `docker-compose.yml` defines:
 
-- **Port mapping**: `8086:8080` (Jenkins UI), `50010:50000` (agent communication)
+- **Port mapping**: `8087:8080` (Jenkins UI), `50011:50000` (agent communication)
 - **JVM tuning**: G1GC with 1g-3g heap, 200ms max GC pause
-- **Volume**: `jenkins_home_v2` for persistent Jenkins data
+- **Volume**: `jenkins_home_v3` for persistent Jenkins data
 - **DinD**: Docker socket mounted for container-based agent execution
 - **Plugin sync**: `PLUGINS_FORCE_UPGRADE=true` ensures `plugins.txt` versions override stale volume plugins
 
@@ -91,3 +94,14 @@ The `casc.yaml` configures:
 - **Git Tool**: Default Git installation registered
 
 All values are parameterized via `${VARIABLE:-default}` syntax — no hardcoded secrets.
+
+## Dependency Management
+
+This repo uses [Mend Renovate Bot](https://github.com/apps/renovate) (free, open-source) to automate dependency updates:
+
+- **Jenkins plugins** (`plugins.txt`): Renovate detects available updates and opens bundled PRs weekly (Monday before 5am)
+- **Docker base image** (`Dockerfile`): Renovate tracks the pinned Jenkins LTS version and opens a PR when a newer version is available
+
+Renovate never auto-merges — all updates are reviewed via Pull Request before merging. Major version bumps are reviewed with changelog analysis before local boot verification.
+
+The Jenkins base image is pinned to an exact version (e.g., `jenkins/jenkins:2.555.3-jdk21`) instead of using floating tags like `lts-jdk21`. This ensures deterministic, reproducible builds — every `docker build` produces the same result regardless of when it runs.
